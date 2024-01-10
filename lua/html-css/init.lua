@@ -20,13 +20,6 @@ local rootDir = scan.scan_dir(".", {
 	end,
 })
 
-local function mrgtbls(t1, t2)
-	for _, v in ipairs(t2) do
-		table.insert(t1, v)
-	end
-	return t1
-end
-
 function Source:setup()
 	require("cmp").register_source(self.source_name, Source)
 end
@@ -34,8 +27,6 @@ end
 function Source:new()
 	self.source_name = "html-css"
 	self.items = {}
-	self.ids = {}
-	self.href_links = {}
 
 	-- reading user config
 	self.user_config = config.get_source_config(self.source_name) or {}
@@ -55,24 +46,18 @@ function Source:new()
 
 		-- handle embedded styles
 		a.run(function()
-			e.read_html_files(function(classes, ids)
+			e.read_html_files(function(classes)
 				for _, class in ipairs(classes) do
 					table.insert(self.items, class)
-				end
-				for _, id in ipairs(ids) do
-					table.insert(self.ids, id)
 				end
 			end)
 		end)
 
 		-- read all local files on start
 		a.run(function()
-			l.read_local_files(self.file_extensions, function(classes, ids)
+			l.read_local_files(self.file_extensions, function(classes)
 				for _, class in ipairs(classes) do
 					table.insert(self.items, class)
-				end
-				for _, id in ipairs(ids) do
-					table.insert(self.ids, id)
 				end
 			end)
 		end)
@@ -91,39 +76,26 @@ function Source:complete(_, callback)
 	-- if git_folder_exists == 1 then
 	if vim.tbl_count(rootDir) ~= 0 then
 		self.items = {}
-		self.ids = {}
 
 		-- handle embedded styles
 		a.run(function()
-			e.read_html_files(function(classes, ids)
+			e.read_html_files(function(classes)
 				for _, class in ipairs(classes) do
 					table.insert(self.items, class)
-				end
-				for _, id in ipairs(ids) do
-					table.insert(self.ids, id)
 				end
 			end)
 		end)
 
 		-- read all local files on start
 		a.run(function()
-			l.read_local_files(self.file_extensions, function(classes, ids)
+			l.read_local_files(self.file_extensions, function(classes)
 				for _, class in ipairs(classes) do
 					table.insert(self.items, class)
-				end
-				for _, id in ipairs(ids) do
-					table.insert(self.ids, id)
 				end
 			end)
 		end)
 
-		if self.current_selector == "class" then
-			callback({ items = self.items, isComplete = false })
-		else
-			if self.current_selector == "id" then
-				callback({ items = self.ids, isComplete = false })
-			end
-		end
+    callback({ items = self.items, isComplete = false })
 	end
 end
 
@@ -151,11 +123,6 @@ function Source:is_available()
 
 	local prev_sibling_name = ts.get_node_text(prev_sibling, 0)
 
-	if prev_sibling_name == "class" then
-		self.current_selector = "class"
-	elseif prev_sibling_name == "id" then
-		self.current_selector = "id"
-	end
 
 	if
 		prev_sibling_name == "class" or prev_sibling_name == "id" and type == "quoted_attribute_value"

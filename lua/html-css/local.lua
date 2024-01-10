@@ -5,14 +5,13 @@ local a = require("plenary.async")
 local j = require("plenary.job")
 local ts = vim.treesitter
 local classes = {}
-local ids = {}
 local unique_class = {}
-local unique_ids = {}
+
+local log = require("html-css.log");
+log.outfile = '/tmp/nvim-html-css.log';
 
 -- treesitter query for extracting css clasess
 local qs = [[
-	(id_selector
-		(id_name)@id_name)
 	(class_selector
 		(class_name)@class_name)
 ]]
@@ -50,9 +49,7 @@ M.read_local_files = a.wrap(function(file_extensions, cb)
 			-- a.uv.fs_close(fd)
 
 			classes = {} -- clean up prev classes
-			ids = {}
 			unique_class = {}
-			unique_ids = {}
 
 			local parser = ts.get_string_parser(data, "css")
 			local tree = parser:parse()[1]
@@ -61,13 +58,8 @@ M.read_local_files = a.wrap(function(file_extensions, cb)
 
 			for _, matches, _ in query:iter_matches(root, data, 0, 0, {}) do
 				for _, node in pairs(matches) do
-					if node:type() == "id_name" then
-						local id_name = ts.get_node_text(node, data)
-						table.insert(unique_ids, id_name)
-					else
-						local class_name = ts.get_node_text(node, data)
-						table.insert(unique_class, class_name)
-					end
+          local class_name = ts.get_node_text(node, data)
+          table.insert(unique_class, class_name)
 				end
 			end
 
@@ -80,16 +72,7 @@ M.read_local_files = a.wrap(function(file_extensions, cb)
 				})
 			end
 
-			local unique_ids_list = u.unique_list(unique_ids)
-			for _, id in ipairs(unique_ids_list) do
-				table.insert(ids, {
-					label = id,
-					kind = cmp.lsp.CompletionItemKind.Enum,
-					menu = file_name,
-				})
-			end
-
-			cb(classes, ids)
+			cb(classes)
 		end
 	end
 end, 2)
