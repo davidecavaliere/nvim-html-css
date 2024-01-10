@@ -1,0 +1,11 @@
+.test-from-scss-0 {
+  background: coral;
+}
+
+.test-from-scss-1 {
+  border: 1px solid #000;
+
+  &-test-2 {
+    border-radius: 18px;
+  }
+}
