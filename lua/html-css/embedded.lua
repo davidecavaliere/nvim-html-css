@@ -10,6 +10,9 @@ local a = require("plenary.async")
 local cmp = require("cmp")
 local ts = vim.treesitter
 
+local log = require("html-css.log");
+log.outfile = '/tmp/nvim-html-css.log';
+
 ---@type item[]
 local classes = {}
 ---@type string[]
@@ -28,10 +31,13 @@ M.read_html_files = a.wrap(function(cb)
 		args = { "-a", "-e", "html", "--exclude", "node_modules" },
 	}):sync()
 
+  log.debug('found', #files, 'files');
+
 	if #files == 0 then
 		return
 	else
 		for _, file in ipairs(files) do
+      log.debug('parsing file', file);
 			---@type string
 			local file_name = u.get_file_name(file, "[^/]+$")
 
@@ -59,6 +65,7 @@ M.read_html_files = a.wrap(function(cb)
 			end
 
 			local unique_classes_list = u.unique_list(unique_class)
+      log.debug('collected', #unique_classes_list, 'classes');
 			for _, class in ipairs(unique_classes_list) do
 				table.insert(classes, {
 					label = class,

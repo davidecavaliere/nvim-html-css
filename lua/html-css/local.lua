@@ -31,10 +31,13 @@ M.read_local_files = a.wrap(function(file_extensions, cb)
 		}):sync()
 	end
 
+  log.debug('found', #files, 'files');
+
 	if #files == 0 then
 		return
 	else
 		for _, file in ipairs(files) do
+      log.debug('parsing file', file);
 			---@type string
 			local file_name = u.get_file_name(file, "[^/]+$")
 
@@ -64,6 +67,7 @@ M.read_local_files = a.wrap(function(file_extensions, cb)
 			end
 
 			local unique_list = u.unique_list(unique_class)
+      log.debug('collected', #unique_list, 'classes');
 			for _, class in ipairs(unique_list) do
 				table.insert(classes, {
 					label = class,

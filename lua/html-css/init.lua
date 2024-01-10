@@ -7,6 +7,9 @@ local e = require("html-css.embedded")
 
 local ts = vim.treesitter
 
+local log = require("html-css.log");
+log.outfile = '/tmp/nvim-html-css.log';
+
 local scan = require("plenary.scandir")
 local rootDir = scan.scan_dir(".", {
 	hidden = true,
@@ -21,10 +24,12 @@ local rootDir = scan.scan_dir(".", {
 })
 
 function Source:setup()
+  log.debug('Registering html-css cmp source');
 	require("cmp").register_source(self.source_name, Source)
 end
 
 function Source:new()
+  log.debug('Newing html-css source');
 	self.source_name = "html-css"
 	self.items = {}
 
@@ -38,6 +43,7 @@ function Source:new()
 	-- Get the current working directory
 	local current_directory = vim.fn.getcwd()
 
+  log.debug(current_directory);
 	-- Check if the current directory contains a .git folder
 	local git_folder_exists = vim.fn.isdirectory(current_directory .. "/.git")
 
@@ -67,6 +73,7 @@ function Source:new()
 end
 
 function Source:complete(_, callback)
+  log.debug('get classnames for completion');
 	-- Get the current working directory
 	local current_directory = vim.fn.getcwd()
 
@@ -104,11 +111,15 @@ function Source:is_available()
 		return false
 	end
 
+  log.debug('html-css: filetype is:', vim.bo.filetype);
+
 	if not vim.tbl_contains(self.option.enable_on, vim.bo.filetype) then
 		return false
 	end
 
 	local inside_quotes = ts.get_node({ bfnr = 0 })
+
+  log.debug('inside quote', inside_quotes);
 
 	if inside_quotes == nil then
 		return false
@@ -117,6 +128,8 @@ function Source:is_available()
 	local type = inside_quotes:type()
 
 	local prev_sibling = inside_quotes:prev_named_sibling()
+  log.debug('prev_sibling', prev_sibling);
+
 	if prev_sibling == nil then
 		return false
 	end
