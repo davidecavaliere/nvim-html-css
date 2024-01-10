@@ -127,6 +127,23 @@ function Source:is_available()
 
 	local type = inside_quotes:type()
 
+  log.debug('type', type);
+
+  -- if type is attribute_value
+  -- when there are already some values 
+  -- in the class attribute 
+  -- we reach the 'attribute_value' node
+  if type == 'attribute_value' then
+
+    local parent = inside_quotes:parent();
+    log.debug(parent);
+    log.debug('parent type', parent:type());
+
+    -- when we are insied the quotes we need to navigate back 
+    -- in order to catch the attribute name
+    inside_quotes = parent;
+  end
+
 	local prev_sibling = inside_quotes:prev_named_sibling()
   log.debug('prev_sibling', prev_sibling);
 
@@ -137,13 +154,18 @@ function Source:is_available()
 	local prev_sibling_name = ts.get_node_text(prev_sibling, 0)
 
 
-	if
-		prev_sibling_name == "class" or prev_sibling_name == "id" and type == "quoted_attribute_value"
-	then
+	if (prev_sibling_name == "class" and type == "quoted_attribute_value") then
+    log.debug('completion is available...');
 		return true
 	end
 
 	return false
 end
 
+function Source:get_trigger_characters()
+  log.debug('get_trigger_characters');
+  return {'*'};
+end
+
 return Source:new()
+
